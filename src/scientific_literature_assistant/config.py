@@ -8,6 +8,7 @@ PAPERS_DIR = DATA_DIR / "papers"
 CHUNK_SIZE = 1000  # Number of characters per chunk
 CHUNK_OVERLAP = 200  # Number of overlapping characters between chunks
 
-EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"  # OpenAI embedding model
-OLLAMA_MODEL = "mistral"  # Ollama model for question answering
+EMBEDDING_MODEL = "nomic-embed-text:latest"  # Ollama model for creating embeddings
+OLLAMA_MODEL = "mistral-small:latest"  
+
 
