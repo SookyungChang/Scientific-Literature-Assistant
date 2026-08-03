@@ -13,22 +13,27 @@ def extract_text_from_pdf(pdf_path):
     # Open the PDF file
     pdf_document = pymupdf.open(pdf_path)
     
-    # Initialize an empty string to hold the extracted text
-    extracted_text = ""
+    # Initialize an empty list to hold the extracted text
+    pages = []
     
     # Iterate through each page in the PDF
-    for page in pdf_document:
+    for page_number, page in enumerate(pdf_document):
 
         # Extract text from the page
-        extracted_text += page.get_text() + "\n"
-    
+        pages.append({
+            "page_number": page_number + 1,
+            "text": page.get_text()
+        })
+
     # Close the PDF document
     pdf_document.close()
     
-    return extracted_text
+    return pages
 
 if __name__ == "__main__":
     # Example usage
-    pdf_path = PAPERS_DIR / "2508.03264v1.pdf"  # Replace with your PDF file path
-    text = extract_text_from_pdf(pdf_path)
-    print(text[:1000])
+    pdf_path = PAPERS_DIR / "Chang_Human.pdf"
+    pages = extract_text_from_pdf(pdf_path)
+    for page in pages:
+        print(f"Page {page['page_number']}: {page['text'][:100]}...")  # Print the first 100 characters of each page
+
