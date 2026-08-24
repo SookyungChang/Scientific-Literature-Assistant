@@ -19,7 +19,12 @@ def process_document(pdf_path: str, chunk_size: int = 1000, chunk_overlap: int =
     pages = extract_text_from_pdf(pdf_path)
     
     # Split the extracted text into chunks
-    chunks = split_text_into_chunks(pages, chunk_size, chunk_overlap)
+    chunks = split_text_into_chunks(
+        pages, 
+        document_name=pdf_path.name,
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap
+    )
 
     # Create embeddings for the chunks
     chunks_with_embeddings = create_embeddings(chunks)

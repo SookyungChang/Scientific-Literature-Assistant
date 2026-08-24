@@ -2,7 +2,7 @@
 
 from scientific_literature_assistant.config import (CHUNK_SIZE, CHUNK_OVERLAP)
 
-def split_text_into_chunks(pages: list[dict], chunk_size: int = CHUNK_SIZE, chunk_overlap: int = CHUNK_OVERLAP) -> list[dict]:
+def split_text_into_chunks(pages: list[dict], document_name: str, chunk_size: int = CHUNK_SIZE, chunk_overlap: int = CHUNK_OVERLAP) -> list[dict]:
     """
     Splits the input text into chunks of specified size with optional overlap.
 
@@ -33,6 +33,7 @@ def split_text_into_chunks(pages: list[dict], chunk_size: int = CHUNK_SIZE, chun
             end = min(start + chunk_size, text_length)
             chunk = {
                 "chunk_id": chunk_id,
+                "document": document_name,
                 "page_number": page["page_number"],
                 # "start_index": start,
                 # "end_index": end,
