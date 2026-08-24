@@ -1,4 +1,4 @@
-# app/ingestion.py
+# app/ingestion.py # PDF -> text
 
 import pymupdf
 from scientific_literature_assistant.config import PAPERS_DIR

@@ -1,3 +1,5 @@
+# app/embeddings.py # chunks -> vectors
+
 import ollama
 from scientific_literature_assistant.config import EMBEDDING_MODEL
 

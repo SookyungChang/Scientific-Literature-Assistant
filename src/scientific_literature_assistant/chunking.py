@@ -1,3 +1,5 @@
+# app/chunking.py # text -> chunks
+
 from scientific_literature_assistant.config import (CHUNK_SIZE, CHUNK_OVERLAP)
 
 def split_text_into_chunks(pages: list[dict], chunk_size: int = CHUNK_SIZE, chunk_overlap: int = CHUNK_OVERLAP) -> list[dict]:
