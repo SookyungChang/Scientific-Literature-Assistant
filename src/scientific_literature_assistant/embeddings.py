@@ -23,3 +23,11 @@ def create_embeddings(chunks: list[dict]) -> list[dict]:
         chunk["embedding"] = embedding
 
     return chunks
+
+def create_query_embedding(text: str) -> list[float]:
+    response = ollama.embed(
+        model=EMBEDDING_MODEL,
+        input=[text]
+    )
+
+    return response["embeddings"][0]
