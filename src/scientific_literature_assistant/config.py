@@ -4,6 +4,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 DATA_DIR = PROJECT_ROOT / "data"
 PAPERS_DIR = DATA_DIR / "papers"
+JSON_DIR = DATA_DIR / "json"
 
 CHUNK_SIZE = 1000  # Number of characters per chunk
 CHUNK_OVERLAP = 200  # Number of overlapping characters between chunks
