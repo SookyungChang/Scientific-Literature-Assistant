@@ -1,6 +1,6 @@
 from scientific_literature_assistant.config import PAPERS_DIR
 from scientific_literature_assistant.chunking import split_text_into_chunks
-from scientific_literature_assistant.ingestion import extract_text_from_pdf
+from old.ingestion_old import extract_text_from_pdf
 from scientific_literature_assistant.embeddings import create_embeddings
 from scientific_literature_assistant.retrieval import retrieve
 
