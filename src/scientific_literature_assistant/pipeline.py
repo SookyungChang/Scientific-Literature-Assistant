@@ -47,7 +47,8 @@ if __name__ == "__main__":
         print(chunk['text'])
         print('-'*50)
     query = """
-    What were the two thermal parameters that the authors wanted to constrain?
+    The authors used a figure of merit to compare the constraining power of the different summaries. 
+    What exactly did this quantity measure?
     """
 
     results = retrieve(
