@@ -15,7 +15,8 @@ env/
 .ipynb_checkpoints/
 
 # Data (PDF papers, datasets)
-data/
+*.pdf
+*.json
 
 # Vector databases
 vector_store/
