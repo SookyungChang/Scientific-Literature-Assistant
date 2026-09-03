@@ -1,13 +1,16 @@
 # app/chunking.py # text -> chunks
-
+import json
+from pprint import pprint
+from scientific_literature_assistant.config import JSON_DIR
+from scientific_literature_assistant.structure import detect_blocks, detect_captions, group_by_section
 from scientific_literature_assistant.config import (CHUNK_SIZE, CHUNK_OVERLAP)
 
-def split_text_into_chunks(pages: list[dict], document_name: str, chunk_size: int = CHUNK_SIZE, chunk_overlap: int = CHUNK_OVERLAP) -> list[dict]:
+def split_text_into_chunks(sections: list[dict], document_name: str, chunk_size: int = CHUNK_SIZE, chunk_overlap: int = CHUNK_OVERLAP) -> list[dict]:
     """
     Splits the input text into chunks of specified size with optional overlap.
 
     Args:
-        pages (list[dict]): A list of dictionaries containing page numbers and text.
+        sections (list[dict]): A list of dictionaries containing section information and text.
         chunk_size (int): The maximum size of each chunk.
         chunk_overlap (int): The number of overlapping characters between consecutive chunks.
 
@@ -24,8 +27,8 @@ def split_text_into_chunks(pages: list[dict], document_name: str, chunk_size: in
     chunks = []
     chunk_id = 0
 
-    for page in pages:
-        text = page["text"]
+    for section in sections:
+        text = section["text"]
         start = 0
 
         text_length = len(text)
@@ -34,9 +37,11 @@ def split_text_into_chunks(pages: list[dict], document_name: str, chunk_size: in
             chunk = {
                 "chunk_id": chunk_id,
                 "document": document_name,
-                "page_number": page["page_number"],
-                # "start_index": start,
-                # "end_index": end,
+                "section_number": section["section_number"],
+                "section_title": section["section_title"],
+                "page_list": section["page"],
+                "start_index": start,
+                "end_index": end,
                 "text": text[start:end]
             }
             chunks.append(chunk)
@@ -46,4 +51,9 @@ def split_text_into_chunks(pages: list[dict], document_name: str, chunk_size: in
     return chunks
 
 if __name__ == "__main__":
-    pass
+    data = json.load(open(JSON_DIR / "Chang_Human.json", encoding="utf-8"))
+    results = detect_blocks(data)
+    captions = detect_captions(data)
+    results = group_by_section(results)
+    chunks = split_text_into_chunks(results, "Chang_Human.json")
+    pprint(chunks)
