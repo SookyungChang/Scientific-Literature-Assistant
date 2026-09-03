@@ -10,6 +10,7 @@ def detect_blocks(data: list[dict], min_text_length: int = 5) -> list[dict]:
 
     abstract_found = False
     appendix_found = False
+    main_end_found = False
     results = []
     section_title = 'Abstract'
     section_number = 0
@@ -18,9 +19,10 @@ def detect_blocks(data: list[dict], min_text_length: int = 5) -> list[dict]:
         if item["label"] == 'section_header' and item['text'].split()[0].upper().strip() == "ABSTRACT":
             abstract_found = True
             continue
-        if item["label"] == 'section_header' and len(item['text'].split()) < 2:
-                    abstract_found = False
-                    continue
+        if not main_end_found and item["label"] == 'section_header' and not item['text'].strip()[0].isdigit() and section_number != 0:
+            abstract_found = False
+            main_end_found = True
+            continue
         if abstract_found:
             if item["label"] == 'section_header':
                 section_number, section_title = item['text'].split(". ", 1)

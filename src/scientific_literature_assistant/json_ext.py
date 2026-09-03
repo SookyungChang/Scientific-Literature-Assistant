@@ -6,7 +6,7 @@ from scientific_literature_assistant.config import PAPERS_DIR, JSON_DIR
 converter = DocumentConverter()
 
 def convert_pdf_to_json():
-    for file in PAPERS_DIR.iterdir():
+    for file in PAPERS_DIR.glob("*.pdf"):
             json_name = f"{file.name.split('.')[0]}.json"
             if json_name not in [f.name for f in JSON_DIR.iterdir()]:
                 json_path = JSON_DIR / json_name

@@ -35,8 +35,8 @@ def split_text_into_chunks(sections: list[dict], document_name: str, chunk_size:
         while start < text_length:
             end = min(start + chunk_size, text_length)
             chunk = {
-                "chunk_id": chunk_id,
                 "document": document_name,
+                "chunk_id": chunk_id,
                 "section_number": section["section_number"],
                 "section_title": section["section_title"],
                 "page_list": section["page"],
@@ -51,9 +51,9 @@ def split_text_into_chunks(sections: list[dict], document_name: str, chunk_size:
     return chunks
 
 if __name__ == "__main__":
-    data = json.load(open(JSON_DIR / "Chang_Human.json", encoding="utf-8"))
+    data = json.load(open(JSON_DIR / "Nayak_Lyanna.json", encoding="utf-8"))
     results = detect_blocks(data)
     captions = detect_captions(data)
     results = group_by_section(results)
-    chunks = split_text_into_chunks(results, "Chang_Human.json")
+    chunks = split_text_into_chunks(results, "Nayak_Lyanna.json")
     pprint(chunks)
