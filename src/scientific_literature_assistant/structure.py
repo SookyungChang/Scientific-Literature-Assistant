@@ -1,6 +1,7 @@
 # app/extraction.py # PDF -> text
 import json
 from pprint import pprint
+from collections import defaultdict
 from scientific_literature_assistant.config import JSON_DIR
 
 def detect_blocks(data: list[dict], min_text_length: int = 5) -> list[dict]:
@@ -10,8 +11,8 @@ def detect_blocks(data: list[dict], min_text_length: int = 5) -> list[dict]:
     abstract_found = False
     appendix_found = False
     results = []
-    section_title = None
-    section_number = None  
+    section_title = 'Abstract'
+    section_number = 0
 
     for i, item in enumerate(data["texts"]):    
         if item["label"] == 'section_header' and item['text'].split()[0].upper().strip() == "ABSTRACT":
@@ -66,11 +67,44 @@ def detect_captions(data: list[dict]) -> list[dict]:
     return captions
 
 
+def group_by_section(structured_data: list[dict]) -> list[dict]:
+    grouped = defaultdict(lambda: {
+        "page": [],
+        "section_number": None,
+        "section_title": None,
+        "text": []
+    })
+
+    for item in structured_data:
+        key = item["section_number"]
+
+        grouped[key]["page"].append(item["page_number"])
+        grouped[key]["section_number"] = item["section_number"]
+        grouped[key]["section_title"] = item["section_title"]
+        grouped[key]["text"].append(item["text"])
+
+
+    result = []
+
+    for item in grouped.values():
+        item["page"] = sorted(set(item["page"]))
+        item["text"] = " ".join(item["text"])
+        result.append(item)
+
+
+    return result
+
 if __name__ == "__main__":
     data = json.load(open(JSON_DIR / "Chang_Human.json", encoding="utf-8"))
     results = detect_blocks(data)
     captions = detect_captions(data)
+    results = group_by_section(results)
     pprint(results)
+    # for result in results:
+    #     print(f"Section {result['section_number']} ({result['section_title']}) - Page {result['page_number']}")
+    #     print(result['text'])
+    #     print()
+
 
 
 
