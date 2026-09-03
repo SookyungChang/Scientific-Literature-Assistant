@@ -1,11 +1,11 @@
 import json
-from scientific_literature_assistant.config import JSON_DIR, PAPERS_DIR
+from scientific_literature_assistant.config import JSON_DIR, PAPERS_DIR, CHUNK_SIZE, CHUNK_OVERLAP
 from scientific_literature_assistant.structure import detect_blocks, detect_captions, group_by_section
 from scientific_literature_assistant.chunking import split_text_into_chunks
 from scientific_literature_assistant.embeddings import create_embeddings
 from scientific_literature_assistant.retrieval import retrieve
 
-def process_document(pdf_path: str, chunk_size: int = 1000, chunk_overlap: int = 200) -> list[dict]:
+def process_document(pdf_path: str, chunk_size: int = CHUNK_SIZE, chunk_overlap: int = CHUNK_OVERLAP) -> list[dict]:
     """
     Processes a PDF document by extracting text and splitting it into chunks.
 
@@ -40,7 +40,7 @@ def process_document(pdf_path: str, chunk_size: int = 1000, chunk_overlap: int =
 if __name__ == "__main__":
     # Example usage
     pdf_path = PAPERS_DIR / "Chang_Human.pdf" # Replace with your PDF file path
-    chunks_with_embeddings = process_document(pdf_path, chunk_size=1000, chunk_overlap=200)
+    chunks_with_embeddings = process_document(pdf_path)
 
     for chunk in chunks_with_embeddings:
         print(f"Chunk {chunk['chunk_id']}", f"| Page {chunk['page_list']} | Section {chunk['section_number']} - {chunk['section_title']}")
