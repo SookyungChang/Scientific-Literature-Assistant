@@ -2,7 +2,8 @@
 import json
 from sla.ingestion.structure import detect_blocks, group_by_section
 from sla.rag.chunking import split_text_into_chunks
-from sla.rag.embeddings import create_embeddings
+from sla.rag.embeddings import create_embeddings, create_query_embedding
+from sla.rag.chroma_store import get_collection
 from sla.rag.retrieval import retrieve
 from sla.config import Config
 config = Config()
@@ -20,13 +21,16 @@ def process_document(chunk_size: int = config.CHUNK_SIZE, chunk_overlap: int = c
     """
 
     chunks = []
-    
+
+    # Chunking
     for file in config.JSON_DIR.glob("*.json"):
         data = json.load(open(config.JSON_DIR / file.name, encoding="utf-8"))
+
         results = detect_blocks(data)
+
         # captions = detect_captions(data)
         results = group_by_section(results)
-
+  
         # Split the extracted text into chunks
         file_chunks = split_text_into_chunks(
             results, 
@@ -36,31 +40,72 @@ def process_document(chunk_size: int = config.CHUNK_SIZE, chunk_overlap: int = c
         )
         chunks.extend(file_chunks)
 
-
     # Create embeddings for the chunks
+    
     chunks_with_embeddings = create_embeddings(chunks)
+    print("Total chunks:", len(chunks_with_embeddings))
+    print(
+        "Documents:",
+        set(chunk["document"] for chunk in chunks_with_embeddings)
+    )
+    collection = get_collection()
 
-    return chunks_with_embeddings
+    for chunk in chunks_with_embeddings:
+        collection.add(
+            ids=[chunk["chunk_id"]],
+            embeddings=[chunk["embedding"]],
+            documents=[chunk["text"]],
+            metadatas=[{
+                "document": chunk["document"],
+                "page_list": str(chunk["page_list"]),
+                "section_number": chunk["section_number"],
+                "section_title": chunk["section_title"],
+            }]
+        )
 
-def retrieve_information(query: str, top_k: int = 5) -> list[dict]:
-    chunks_with_embeddings = process_document()
-    results = retrieve(query, chunks_with_embeddings, top_k=top_k)
+    print(f"DB file is saved in {config.DB_DIR}.")
+
+    return collection
+
+
+def retrieve_information(query: str) -> list[dict]:
+
+    collection = get_collection()
+    results = retrieve(query, collection, config.TOP_K)
 
     print("\n===== Retrieval Results =====")
     
     print("query:", query)
 
-    for i, result in enumerate(results, start=1):
+    print("\n" + "=" * 60)
+    print("RETRIEVAL RESULTS")
+    print("=" * 60)
+
+    ids = results["ids"][0]
+    documents = results["documents"][0]
+    metadatas = results["metadatas"][0]
+    distances = results["distances"][0]
+
+    for i, (chunk_id, text, metadata, distance) in enumerate(
+        zip(ids, documents, metadatas, distances),
+        start=1
+    ):
         print(f"\n--- Result {i} ---")
-        print(f"Document: {result['document']}")
-        print(f"Chunk {result['chunk_id']}", f"| Page {result['page_list']} | Section {result['section_number']} - {result['section_title']}")
-        print(f"Similarity: {result['similarity']:.4f}")
-        print(f"Text: {result['text']}")
+        print(f"Document : {metadata['document']}")
+        print(
+            f"Chunk    : {chunk_id} | "
+            f"Page     : {metadata['page_list']} | "
+            f"Section  : {metadata['section_number']} - "
+            f"{metadata['section_title']}"
+        )
+        print(f"Distance : {distance:.4f}")
+        print(f"Text     : {text}")
+            
 
 if __name__ == "__main__":
     query = """
     where is the information about the hydrodynamic simulation box and the cosmological parameters?
     """
-    retrieve_information(query, top_k=5)
+    retrieve_information(query)
 
     
