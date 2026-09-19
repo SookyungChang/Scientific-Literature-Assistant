@@ -18,4 +18,8 @@ class Config:
     EMBEDDING_MODEL: str = "nomic-embed-text:latest"  # Ollama model for creating embeddings
     OLLAMA_MODEL: str = "mistral-small:latest"  
 
+    # ChromaDB
+    COLLECTION_NAME: str = "literature"
+    TOP_K: int = 10
+
 config = Config()
