@@ -58,7 +58,7 @@ def retrieve_information(query: str, top_k: int = 5) -> list[dict]:
 
 if __name__ == "__main__":
     query = """
-    where is the information about the simulation box and the cosmological paper used in the simulation?
+    where is the information about the hydrodynamic simulation box and the cosmological parameters?
     """
     retrieve_information(query, top_k=5)
 
