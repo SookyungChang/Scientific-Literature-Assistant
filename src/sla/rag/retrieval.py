@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from scientific_literature_assistant.embeddings import (
+from sla.rag.embeddings import (
     create_query_embedding
 )
 

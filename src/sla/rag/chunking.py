@@ -1,11 +1,11 @@
 # app/chunking.py # text -> chunks
 import json
 from pprint import pprint
-from scientific_literature_assistant.config import JSON_DIR
-from scientific_literature_assistant.structure import detect_blocks, detect_captions, group_by_section
-from scientific_literature_assistant.config import (CHUNK_SIZE, CHUNK_OVERLAP)
+from sla.ingestion.structure import detect_blocks, detect_captions, group_by_section
+from sla.config import Config
+config = Config()
 
-def split_text_into_chunks(sections: list[dict], document_name: str, chunk_size: int = CHUNK_SIZE, chunk_overlap: int = CHUNK_OVERLAP) -> list[dict]:
+def split_text_into_chunks(sections: list[dict], document_name: str, chunk_size: int = config.CHUNK_SIZE, chunk_overlap: int = config.CHUNK_OVERLAP) -> list[dict]:
     """
     Splits the input text into chunks of specified size with optional overlap.
 
@@ -51,7 +51,7 @@ def split_text_into_chunks(sections: list[dict], document_name: str, chunk_size:
     return chunks
 
 if __name__ == "__main__":
-    data = json.load(open(JSON_DIR / "Nayak_Lyanna.json", encoding="utf-8"))
+    data = json.load(open(config.JSON_DIR / "Nayak_Lyanna.json", encoding="utf-8"))
     results = detect_blocks(data)
     captions = detect_captions(data)
     results = group_by_section(results)

@@ -1,12 +1,13 @@
+# ~/pipeline.py
 import json
-from pprint import pprint
-from scientific_literature_assistant.config import JSON_DIR, PAPERS_DIR, CHUNK_SIZE, CHUNK_OVERLAP
-from scientific_literature_assistant.structure import detect_blocks, detect_captions, group_by_section
-from scientific_literature_assistant.chunking import split_text_into_chunks
-from scientific_literature_assistant.embeddings import create_embeddings
-from scientific_literature_assistant.retrieval import retrieve
+from sla.ingestion.structure import detect_blocks, group_by_section
+from sla.rag.chunking import split_text_into_chunks
+from sla.rag.embeddings import create_embeddings
+from sla.rag.retrieval import retrieve
+from sla.config import Config
+config = Config()
 
-def process_document(chunk_size: int = CHUNK_SIZE, chunk_overlap: int = CHUNK_OVERLAP) -> list[dict]:
+def process_document(chunk_size: int = config.CHUNK_SIZE, chunk_overlap: int = config.CHUNK_OVERLAP) -> list[dict]:
     """
     Processes a PDF document by extracting text and splitting it into chunks.
 
@@ -20,8 +21,8 @@ def process_document(chunk_size: int = CHUNK_SIZE, chunk_overlap: int = CHUNK_OV
 
     chunks = []
     
-    for file in JSON_DIR.glob("*.json"):
-        data = json.load(open(JSON_DIR / file.name, encoding="utf-8"))
+    for file in config.JSON_DIR.glob("*.json"):
+        data = json.load(open(config.JSON_DIR / file.name, encoding="utf-8"))
         results = detect_blocks(data)
         # captions = detect_captions(data)
         results = group_by_section(results)

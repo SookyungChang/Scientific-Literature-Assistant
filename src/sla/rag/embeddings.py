@@ -1,7 +1,8 @@
 # app/embeddings.py # chunks -> vectors
 
 import ollama
-from scientific_literature_assistant.config import EMBEDDING_MODEL
+from sla.config import Config
+config = Config()
 
 def create_embeddings(chunks: list[dict]) -> list[dict]:
 
@@ -15,7 +16,7 @@ def create_embeddings(chunks: list[dict]) -> list[dict]:
     """
     texts = [chunk["text"] for chunk in chunks]
 
-    response = ollama.embed(model=EMBEDDING_MODEL, input=texts)
+    response = ollama.embed(model=config.EMBEDDING_MODEL, input=texts)
 
     embeddings = response["embeddings"]
 
@@ -26,7 +27,7 @@ def create_embeddings(chunks: list[dict]) -> list[dict]:
 
 def create_query_embedding(text: str) -> list[float]:
     response = ollama.embed(
-        model=EMBEDDING_MODEL,
+        model=config.EMBEDDING_MODEL,
         input=[text]
     )
 
