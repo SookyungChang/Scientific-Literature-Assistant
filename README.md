@@ -1,211 +1,229 @@
 # Scientific Literature Assistant
 
-A local semantic search system for navigating scientific literature.
+A lightweight retrieval-augmented generation (RAG) project for searching and querying scientific literature stored as structured JSON extracted from PDFs. The system ingests paper content, splits it into semantically meaningful sections, embeds each chunk with Ollama, stores the vectors in ChromaDB, and retrieves the most relevant passages for a natural-language query.
 
-The goal is simple: when a researcher remembers *"I read this somewhere..."*, the system searches across a collection of scientific papers and retrieves the most relevant paper and text chunk.
+This repository is designed for research workflows where you want to ask targeted questions across multiple scientific papers without manually reading each document.
 
-## What It Does
+## Overview
 
-- Processes multiple scientific papers from a local collection
-- Detects and preserves paper sections
-- Splits text into overlapping, section-aware chunks
-- Generates local embeddings using Ollama
-- Retrieves relevant chunks using cosine similarity
-- Preserves document, section, page, and chunk metadata for traceable results
+The project follows a simple RAG pipeline:
 
-## Current Capabilities
+- Extract structured text from scientific paper data
+- Detect and group main sections of the document
+- Split large sections into overlapping chunks
+- Generate embeddings using Ollama
+- Store embeddings in a persistent ChromaDB collection
+- Retrieve relevant chunks for a user query
 
-- Convert PDFs in `data/papers/` into structured Docling JSON files.
-- Detect abstracts, numbered sections, and appendices in the exported paper structure.
-- Filter layout furniture, footnotes, and very short text blocks.
-- Group extracted text by section while preserving page numbers.
-- Split sections into overlapping chunks with configurable size and overlap.
-- Generate document and query embeddings locally with Ollama.
-- Rank chunks from multiple papers with cosine similarity.
-- Print document, section, page, chunk, character-offset, similarity, and text metadata with each result.
-- Detect common PDF extraction artifacts such as spaced decimals, line-break hyphenation, suspicious concatenated tokens, and spaced scientific terms.
-- Normalize Unicode and whitespace, and optionally ask an Ollama chat model to classify ambiguous extraction artifacts.
+In short:
 
-The project currently implements retrieval and evidence inspection. It does not yet generate final LLM answers, persist embeddings in a vector database, expose an HTTP API, or search the internet.
-
-## Architecture
-
-```mermaid
-flowchart LR
-    A[PDF files] --> B[Docling conversion]
-    B --> C[Structured paper JSON]
-    C --> D[Section detection and grouping]
-    D --> E[Overlapping chunks]
-    E --> F[Ollama embeddings]
-    F --> G[In-memory cosine similarity]
-    Q[Research question] --> H[Query embedding]
-    H --> G
-    G --> R[Ranked evidence]
+```text
+PDF/JSON source data
+        ↓
+section detection + grouping
+        ↓
+chunking
+        ↓
+embedding generation (Ollama)
+        ↓
+ChromaDB vector storage
+        ↓
+query-time retrieval
 ```
 
-## Tech Stack
+## Features
 
-- Python 3.12+
-- [Docling](https://github.com/docling-project/docling) for PDF document conversion
-- [Ollama](https://ollama.com/) for local embeddings and optional artifact classification
-- `nomic-embed-text:latest` for document and query embeddings
-- `mistral-small:latest` for optional ambiguous-artifact classification
-- NumPy for cosine-similarity calculations
-- Standard-library modules including `pathlib`, `json`, `re`, and `unicodedata`
+- Section-aware literature parsing from document JSON structures
+- Chunking with overlap for preserving contextual continuity
+- Vector embedding generation via Ollama
+- Persistent vector database using ChromaDB
+- Query retrieval based on cosine similarity
+- Metadata-rich stored chunks, including document name, page list, and section title
+- Config-driven behavior to adjust chunk size, overlap, model selection, and retrieval depth
 
-## Project Structure
+## Project structure
 
 ```text
 Scientific-Literature-Assistant/
+├── pipeline.py                     # main runtime script for indexing and retrieval
+├── pyproject.toml                 # package metadata and dependencies
+├── README.md                      # project documentation
 ├── data/
-│   ├── json/                         # Structured Docling JSON inputs
-│   └── papers/                       # Source PDFs
+│   ├── json/                     # input paper JSON files
+│   ├── papers/                   # raw PDFs (if used locally)
+│   └── chroma_db/                # persistent ChromaDB storage
 ├── src/
-│   └── scientific_literature_assistant/
-│       ├── artifact_detector.py      # Deterministic artifact detectors
-│       ├── cleaning.py               # Text normalization and candidates
-│       ├── chunking.py               # Section text to overlapping chunks
-│       ├── citation.py               # Planned citation functionality
-│       ├── config.py                 # Paths and model/chunk defaults
-│       ├── embeddings.py             # Ollama embedding integration
-│       ├── json_ext.py               # PDF to structured JSON conversion
-│       ├── llm.py                    # Planned answer-generation module
-│       ├── pipeline.py               # Processing and retrieval workflow
-│       ├── ranking.py                # Planned ranking functionality
-│       ├── retrieval.py               # Cosine-similarity retrieval
-│       ├── structure.py              # Block filtering and section grouping
-│       ├── web_search.py             # Placeholder for future web search
-│       ├── api.py                    # Planned API module
-│       └── main.py                   # Reserved application entry point
-├── notebooks/                        # Exploratory notebooks
-├── old/                              # Earlier experiments
-├── tests/                            # Sample fixtures and exploratory scripts
-├── pyproject.toml
-└── README.md
+│   └── sla/
+│       ├── __init__.py
+│       ├── config.py             # global settings
+│       ├── ingestion/
+│       │   ├── artifact_detector.py
+│       │   ├── cleaning.py
+│       │   ├── structure.py
+│       │   └── extraction.py
+│       └── rag/
+│           ├── chroma_store.py
+│           ├── chunking.py
+│           ├── embeddings.py
+│           └── retrieval.py
+└── uv.lock
 ```
 
-## Getting Started
+## Core pipeline
 
-### Requirements
+### 1. Configuration
 
-- Python 3.12 or newer
-- Ollama installed and running locally
-- Docling and the runtime Python dependencies installed
+The central settings live in `src/sla/config.py`.
 
-Pull the models used by the implemented features:
+Key defaults include:
 
-```bash
-ollama pull nomic-embed-text:latest
-ollama pull mistral-small:latest
-```
+- data directory: `data/`
+- JSON input directory: `data/json/`
+- vector database directory: `data/chroma_db/`
+- chunk size: `1000` characters
+- chunk overlap: `300` characters
+- embedding model: `nomic-embed-text:latest`
+- ChromaDB collection: `literature`
+- retrieval depth: `TOP_K = 10`
 
-### Installation
+### 2. Document structure extraction
 
-```bash
-git clone <repository-url>
-cd Scientific-Literature-Assistant
+The ingestion logic is primarily handled by the files under `src/sla/ingestion/`.
 
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e .
-python -m pip install docling numpy ollama
-```
+- `structure.py` extracts text blocks from JSON document data and groups them by section.
+- `artifact_detector.py` and `cleaning.py` help detect PDF/OCR-style extraction artifacts such as:
+  - decimal spacing issues
+  - line-break hyphen breaks
+  - suspicious token concatenations
+  - scientific term spacing artifacts
+- `extraction.py` is the PDF/JSON document parsing layer that filters relevant text elements and organizes them into sections.
 
-The project metadata currently declares `pymupdf`, but the active PDF conversion code uses Docling. The explicit runtime install above reflects the modules imported by the current implementation.
+This stage turns raw structured paper data into section-based text blocks with metadata such as:
+
+- `section_number`
+- `section_title`
+- `page_number`
+- `text`
+
+### 3. Chunking
+
+The chunking layer is in `src/sla/rag/chunking.py`.
+
+`split_text_into_chunks(...)`:
+
+- iterates over grouped sections
+- slices each section into text windows of `chunk_size`
+- applies overlap between chunks
+- stores chunk metadata like document name, section, and page range
+
+This is important because embeddings work best when text is broken down into manageable, contextual units.
+
+### 4. Embeddings and retrieval
+
+The embedding code is in `src/sla/rag/embeddings.py`.
+
+- `create_embeddings(chunks)` calls Ollama embedding generation for all chunk texts
+- `create_query_embedding(text)` produces a vector for the user query
+
+The retrieval layer is in `src/sla/rag/retrieval.py`.
+
+- `retrieve(query, collection, top_k)` sends the query embedding to ChromaDB
+- it returns the top matching chunks
+
+The vector store setup is in `src/sla/rag/chroma_store.py`.
+
+- it creates a persistent ChromaDB client at `data/chroma_db`
+- it creates or reuses the `literature` collection
+- the collection uses cosine similarity storage
 
 ## Usage
 
-### Convert PDFs to JSON
+### Install dependencies
 
-Place PDFs in `data/papers/`, then run:
+This project uses Python 3.12+ and includes package metadata in `pyproject.toml`.
 
-```bash
-python -m scientific_literature_assistant.json_ext
-```
-
-Each PDF is converted to a same-stem JSON file in `data/json/`. Existing JSON files are skipped.
-
-### Run the Retrieval Demo
-
-Place structured Docling JSON files in `data/json/`, then run:
+To install the project in editable mode:
 
 ```bash
-python -m scientific_literature_assistant.pipeline
+python -m pip install -e .
 ```
 
-The demo processes every `*.json` file in `data/json/`, creates embeddings in memory, and prints the top five results for the example query defined in `pipeline.py`.
+If using a virtual environment, activate it first.
 
-The pipeline can also be called from Python:
+### Install Ollama models
+
+The project expects Ollama to be available locally and the configured models to be downloaded.
+
+```bash
+ollama pull nomic-embed-text:latest
+```
+
+### Build the vector database
+
+The main index-building flow is exposed through `pipeline.py`.
+
+Example in Python:
 
 ```python
-from scientific_literature_assistant.pipeline import retrieve_information
+from pipeline import process_document
 
-retrieve_information(
-    "Where is the information about the simulation box?",
-    top_k=5,
-)
+process_document()
 ```
 
-`retrieve_information` currently prints results rather than returning them. The lower-level `retrieve` function in `retrieval.py` returns ranked result dictionaries.
+This function:
 
-### Inspect PDF Extraction Artifacts
+- reads all JSON files in `data/json/`
+- detects and groups document sections
+- creates chunks
+- embeds them
+- stores them in ChromaDB
 
-Run the deterministic candidate detectors against the sample JSON fixture:
+### Example behavior
 
-```bash
-python -m scientific_literature_assistant.artifact_detector
+The retrieval result prints:
+
+- document name
+- chunk ID
+- section number and title
+- page list
+- distance score
+- matching text snippet
+
+This makes it easy to inspect which passages are most relevant to the query.
+
+## Important notes about the current implementation
+
+This repository is a working research prototype rather than a polished production SaaS application.
+
+Some current characteristics:
+
+- the main workflow is script-based, not exposed through a CLI or web interface
+- retrieval is based on ChromaDB and Ollama locally
+- the ingestion path expects structured JSON from document extraction rather than raw PDFs alone
+- there are helper modules for cleaning and artifact detection, but the current runtime focuses on the document-to-vector pipeline
+
+## Example usage flow
+
+```python
+from pipeline import process_document, retrieve_information
+
+process_document(chunk_size=1000, chunk_overlap=300)
+retrieve_information("here is the information about the hydrodynamic simulation box and the cosmological parameters?")
 ```
 
-Run the cleaning and optional Ollama-assisted classification workflow:
+## Dependencies
 
-```bash
-python -m scientific_literature_assistant.cleaning
-```
+The package is configured in `pyproject.toml` and includes:
 
-The cleaning workflow applies deterministic decimal-spacing fixes and asks `mistral-small:latest` to classify other candidates conservatively. It is an exploratory utility and is not currently connected to the retrieval pipeline.
+- `docling`
+- `numpy`
+- `ollama`
+- `chromadb`
 
-## Data Format
+Optional development dependency:
 
-The retrieval pipeline expects a Docling document export with a top-level `texts` array. Text items are expected to contain labels, text, parent references, content layers, and page provenance. Section headers are currently recognized in formats such as `1. Introduction` and `1: Introduction`.
+- `ipykernel`
 
-Each generated chunk contains:
+## Summary
 
-- `document`
-- `chunk_id`
-- `section_number`
-- `section_title`
-- `page_list`
-- `start_index` and `end_index`
-- `text`
-- `embedding` after embedding generation
-
-The default chunk size is 1,000 characters with 300 characters of overlap. These values and the Ollama model names are configured in `src/scientific_literature_assistant/config.py`.
-
-## Implementation Notes
-
-- Embeddings are recreated for every query and kept in memory; no vector store or embedding cache is implemented.
-- Retrieval scans JSON files from the local `data/json/` directory.
-- Page metadata is preserved at the grouped-section level, so `page_list` may contain multiple pages for a chunk.
-- The command-line demo uses a hardcoded example query; query arguments and a web/API interface are not implemented yet.
-- `api.py`, `main.py`, `llm.py`, `ranking.py`, and `citation.py` are reserved or placeholder modules.
-- `web_search.py` is not an internet search implementation; it is currently a placeholder.
-- The `tests/` directory currently contains fixtures and exploratory scripts rather than an automated test suite.
-
-## Roadmap
-
-- Add automated tests for extraction, chunk boundaries, artifact detection, and retrieval ranking.
-- Add command-line query arguments and structured result output.
-- Persist embeddings in a vector database.
-- Add LLM-based answer generation grounded in retrieved passages.
-- Implement citation formatting from preserved source metadata.
-- Expose retrieval and question answering through FastAPI.
-- Add academic web search and Docker deployment.
-
-## Motivation
-
-As a physicist working with scientific literature, I often encountered the problem of remembering an idea or result from a paper without remembering exactly where I had read it.
-
-This project explores how a local retrieval pipeline can help solve that problem:
-
-**Find the relevant paper. Find the relevant passage. Keep the evidence traceable.**
+Scientific Literature Assistant is a compact, document-centric RAG system for exploring scientific literature stored as extracted JSON. It is especially useful for exploratory literature review, targeted fact retrieval, and searching through large volumes of scientific text while preserving section-level context.
