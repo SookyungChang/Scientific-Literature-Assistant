@@ -208,7 +208,7 @@ Some current characteristics:
 from pipeline import process_document, retrieve_information
 
 process_document(chunk_size=1000, chunk_overlap=300)
-retrieve_information("here is the information about the hydrodynamic simulation box and the cosmological parameters?")
+retrieve_information("Where is the information about the hydrodynamic simulation box?")
 ```
 
 ## Dependencies
