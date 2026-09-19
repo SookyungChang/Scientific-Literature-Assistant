@@ -11,6 +11,7 @@ dependencies = [
     "docling",
     "numpy",
     "ollama",
+    "chromadb",
 ]
 
 [project.optional-dependencies]
