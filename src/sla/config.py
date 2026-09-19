@@ -8,6 +8,7 @@ class Config:
     DATA_DIR: Path = PROJECT_ROOT / "data"
     PAPERS_DIR: Path = DATA_DIR / "papers"
     JSON_DIR: Path = DATA_DIR / "json"
+    DB_DIR: Path = DATA_DIR / "chroma_db"
 
     # Chunking
     CHUNK_SIZE: int = 1000  # Number of characters per chunk
