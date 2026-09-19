@@ -1,4 +1,4 @@
-# app/cleaning.py # text -> detect candidates
+# ~/src/sla/ingestion/cleaning.py # text -> detect candidates
 import re
 import unicodedata
 import json

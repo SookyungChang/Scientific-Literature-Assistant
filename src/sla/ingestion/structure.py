@@ -1,4 +1,4 @@
-# app/extraction.py # PDF -> text
+# ~/src/sla/ingestion/extraction.py # PDF -> text
 import json
 from pprint import pprint
 from collections import defaultdict
