@@ -19,8 +19,7 @@ env/
 *.json
 
 # Vector databases
-vector_store/
-chroma/
+chroma_db/
 *.db
 
 # Model files
