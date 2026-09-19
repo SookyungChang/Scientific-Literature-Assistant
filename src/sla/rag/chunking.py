@@ -36,7 +36,7 @@ def split_text_into_chunks(sections: list[dict], document_name: str, chunk_size:
             end = min(start + chunk_size, text_length)
             chunk = {
                 "document": document_name,
-                "chunk_id": chunk_id,
+                "chunk_id": document_name + '_' +str(chunk_id),
                 "section_number": section["section_number"],
                 "section_title": section["section_title"],
                 "page_list": section["page"],
